@@ -2,13 +2,13 @@
   "name": "jaspect",
   "version": "0.0.0",
   "description": "Simple aspect oriented JavaScript",
-  "main": "jaspect-compile.js",
+  "main": "cli.js",
   "dependencies": {
     "burrito": "~0.2.12"
   },
   "devDependencies": {},
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": ""
   },
   "repository": {
     "type": "git",
@@ -17,7 +17,7 @@
   "keywords": [
     "aspect"
   ],
-  "author": "Satshabad Khalsa, Aileen Alba",
+  "author": "Aileen Alba, Satshabad Khalsa",
   "license": "BSD",
   "readmeFilename": "README.md",
   "gitHead": "c7d4bb1c455b19a6bdf321d547e55ba6b23cc931"

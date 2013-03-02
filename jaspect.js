@@ -16,7 +16,7 @@ function traverse(tree){
   for (var i = 0; i < tree.length; i++){
     
     if (tree[i] === 'defun'){
-      tree[3].unshift(["stat", ["call", ["name", "foo"], []]]);
+      tree[3].unshift(["stat", ["call", ["name", "bar"], []]]);
     }
     traverse(tree[i]);
   }

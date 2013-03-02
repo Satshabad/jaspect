@@ -1,4 +1,4 @@
-jaspect = require('jaspect'); // If this being used server side, then this works. gotta figure out something else for when being used on client
+jaspect = require('jaspect'); // If this being used server side, then this works. Otherwise it should be made avaible with a script tag?
 
 var anyFunctionPointCut = {"file":"myfile.js",
                          

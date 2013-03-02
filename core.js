@@ -1,4 +1,4 @@
-
+// This file will conatain all the core logic of jaspect. For now it's a staging designed to work with index.html
 
 var scripts = top.document.getElementsByTagName('script');
 

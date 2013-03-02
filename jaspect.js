@@ -24,6 +24,8 @@ function traverse(tree){
 
 }
 
-ast = parse('function foo(x, y, z){\n return x + y + z; \n}')
+ast = parse('function foo(x, y, z){\n return x + y + z; \n}');
+console.log(ast);
 traverse(ast);
+console.log(ast);
 console.log(deparse(ast));

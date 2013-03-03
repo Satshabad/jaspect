@@ -1,4 +1,4 @@
 jaspect
 =======
 
-Simple aspect oriented JavaScript.
+Simple aspect oriented JavaScript. :)

@@ -4,14 +4,14 @@ jaspect = require('jaspect'); // If this being used server side, then this works
 
 var anyFunctionPointCut = {"file":"myfile.js",
                          
-                         "functionName":"*",
+                         "pointcutType":"execute(*)",
                          
                          "args":"*"};
     
 
 var fooPointCut = {"file":"myfile.js",
                          
-                         "functionName":"foo",
+                         "pointcutType":"call(foo)",
                          
                          "args":"*"};
 

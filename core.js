@@ -11,23 +11,6 @@ module.exports = function(sourceTrees){
   jaspect.sourceTrees = sourceTrees;
   
   
-  var traverse = function(tree){
-  
-    if (typeof tree === 'string'){
-      return;
-    }
-    
-    for (var i = 0; i < tree.length; i++){
-      
-      if (tree[i] === 'defun'){
-        tree[3].unshift(["stat", ["call", ["name", "bar"], []]]);
-      }
-      traverse(tree[i]);
-    }
-  
-  }
-  
-
   jaspect.after = function(pointcut, callback){
 
     /* insertions for this advice will be as follows:
@@ -101,10 +84,38 @@ module.exports = function(sourceTrees){
 
   }
     
-    
+  // export the helper functions for tests
+  jaspect.privateFunctions = { 
+      
+      traverse: traverse,
+    	
+  
+  }
     
   return jaspect;
 }
+  
+// Helper functions 
+  
+var tacify = function(ast){
+
+}
+  
+var traverse = function(tree){
+  
+    if (typeof tree === 'string'){
+      return;
+    }
+    
+    for (var i = 0; i < tree.length; i++){
+      
+      if (tree[i] === 'defun'){
+        tree[3].unshift(["stat", ["call", ["name", "bar"], []]]);
+      }
+      traverse(tree[i]);
+    }
+  
+  }
 
   
 

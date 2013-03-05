@@ -101,6 +101,10 @@ module.exports = function(sourceTrees){
 var tacify = function(ast){
 
 }
+    
+var insertBefore = function(toBeInserted, ast){
+
+}
   
 var traverse = function(tree){
   

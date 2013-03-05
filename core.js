@@ -88,6 +88,7 @@ module.exports = function(sourceTrees){
   jaspect.privateFunctions = { 
       
       traverse: traverse,
+      tacify : tacify
     	
   
   }

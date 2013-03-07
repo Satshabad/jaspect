@@ -5,13 +5,36 @@ var parse = burrito.parse;
 var deparse = burrito.deparse;
 
 module.exports = function(sourceTrees){
-	jaspect = {};
-  
+	var jaspect = {};
+  var functionNumber = 0;
   
   jaspect.sourceTrees = sourceTrees;
   
   
   jaspect.after = function(pointcut, callback){
+    
+    var callBackName = "f"+ funtionNumber.toString();
+    var cbDeclaration = "var" + callBackName + " = " + callback.toString();
+    funtionNumber++;
+    
+    var rawAst = sourceTrees[pointcut.file];
+    
+    var functiondefAst = insertBefore(parse(cbDeclaration), rawAst);
+    
+    if (point.type == "call"){
+    	var aspectedAst = afterCall(pointcut, callBackName, functiondefAst);
+    }
+    
+    if (point.type == "execute"){
+    	var aspectedAst = afterExecute(pointcut, callBackName, functiondefAst);
+    }
+    
+    sourceTrees[pointcut.file] = aspectedAst;
+    
+
+
+    
+
 
     /* insertions for this advice will be as follows:
 
@@ -34,6 +57,13 @@ module.exports = function(sourceTrees){
   }
   
   jaspect.before = function (pointcut, callback){
+    
+    
+    
+    insertBefore(parse)
+    
+    
+    
     
     /* insertions for this advice will be as follows:
 
@@ -96,15 +126,116 @@ module.exports = function(sourceTrees){
   return jaspect;
 }
   
+var afterCall = function(pointcut, callbackName, ast){
+
+  var tacAst = tacify(functiondefAst, "call");
+  
+  var insertNode = parse(callbackName+"()");
+      
+  return insertAfter(insertNode, "call", ast);
+      
+      
+      
+      
+}
+  
 // Helper functions 
   
 var tacify = function(ast){
 
 }
     
-var insertBefore = function(toBeInserted, ast){
-
+var insertBefore = function(toBeInserted, targetNode, ast){
+	
 }
+    
+var insertAfterCall = function(toBeInserted, targetNode, tree){
+  
+  var ast = tree;
+  
+  var inner = function(toBeInserted, targetNode, tree){
+
+    if (typeof tree === 'string'){
+        return;
+      }
+    
+    for (var i = 0; i < tree.length; i++){
+      
+      if(isStat(tree[i]) || isVar(tree[i])){
+     
+        call = getCall(tree[i]);
+        if (call != false){
+          tree.splice(i+1, 0, toBeInserted);
+          i++;
+        } else {
+          insertAfter(toBeInserted, targetNode, tree[i]);
+        }
+      
+      }else{
+      	insertAfter(toBeInserted, targetNode, tree[i]);
+      }
+    }    
+  }
+    
+  inner(toBeInserted, targetNode, tree);
+  return ast;
+  
+}
+    
+    
+var getCall = function(tree){
+   
+   var call = false;
+   
+   var inner = function(tree){
+
+     if (typeof tree === 'string'){
+          return;
+        }
+     
+     for (var i = 0; i < tree.length; i++){
+        
+       if (tree[i] === "call"){
+         call = tree;
+        }
+       
+        inner(tree[i]);
+      }
+   }
+   
+   inner(tree);
+   return call;
+   
+ 
+}
+
+var isStat = function(ast){
+  if (typeof ast === 'string'){
+        return false;
+      }
+  
+  if (ast.length == 0){
+      return false;
+  }
+
+  return ast[0] == "stat";
+}
+
+var isVar = function(ast){
+  if (typeof ast === 'string'){
+        return false;
+      }
+  
+  if (ast.length == 0){
+      return false;
+  }
+
+  return ast[0] == "var";
+}
+     
+
+    
+  
   
 var traverse = function(tree){
   

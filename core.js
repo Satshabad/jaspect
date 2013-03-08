@@ -13,27 +13,7 @@ module.exports = function(sourceTree){
   
   jaspect.after = function(pointcut, context, callback){
     
-    var callBackName = "f"+ functionNumber.toString();
-    var cbDeclaration = "var " + callBackName + " = " + callback.toString();
-    functionNumber++;
-    var callBackInsert = parse(callBackName+"()")[1][0][1];
-    
-    var ast = jaspect.sourceTree;
-    ast = tacify(ast);
-    
-    
-    if (pointcut.type == "call"){
-    	var aspectedAst = instrumentOnCall(callBackInsert, parse(JSON.stringify(context))[1][0], "after", ast);
-    }
-    
-    if (pointcut.type == "execute"){
-    	var aspectedAst = instrumentOnExecute(callBackInsert, parse(JSON.stringify(context))[1][0], "after", ast);
-    }
-
-
-    ast[1].unshift(parse(cbDeclaration)[1][0]);
-    
-    jaspect.sourceTree = aspectedAst;
+    instrument(pointcut, context, callback, "after");
     
     /* insertions for this advice will be as follows:
 
@@ -55,9 +35,9 @@ module.exports = function(sourceTree){
     
   }
   
-  jaspect.before = function (pointcut, callback){
+  jaspect.before = function (pointcut, context, callback){
     
-    
+    instrument(pointcut, context, callback, "before");
     
     /* insertions for this advice will be as follows:
 
@@ -107,6 +87,51 @@ module.exports = function(sourceTree){
 		*/
 
   }
+
+  var instrument =  function(pointcut, context, callback, adviceLocation){
+    
+    var callBackName = "f"+ functionNumber.toString();
+    var cbDeclaration = "var " + callBackName + " = " + callback.toString();
+    functionNumber++;
+    var callBackInsert = parse(callBackName+"()")[1][0][1];
+    
+    var ast = jaspect.sourceTree;
+    ast = tacify(ast);
+    
+    
+    if (pointcut.type == "call"){
+    	var aspectedAst = instrumentOnCall(callBackInsert, parse("x = "+JSON.stringify(context))[1][0][1][3], adviceLocation, ast);
+    }
+    
+    if (pointcut.type == "execute"){
+    	var aspectedAst = instrumentOnExecute(callBackInsert, parse("x = "+JSON.stringify(context))[1][0][1][3], adviceLocation, ast);
+    }
+
+
+    ast[1].unshift(parse(cbDeclaration)[1][0]);
+    
+    jaspect.sourceTree = aspectedAst;
+    
+    /* insertions for this advice will be as follows:
+
+			 after call: 
+
+			 doStuff(1,2,3);
+       callback(jp); 
+       
+       jp.args = list args that were passed in
+       jp.sourceLocation = file/line of the advised call
+       jp.that = the 'this' context in which the call was made
+       jp.pointcut = the pointcut that instrumented the advice
+
+       after execute:
+
+			 ?????????
+		*/
+    
+    
+  }
+
     
   // export the helper functions for tests
   jaspect.privateFunctions = { 
@@ -124,8 +149,8 @@ module.exports = function(sourceTree){
 var tacify = function(ast){
     return ast;
 }
-    
-    
+
+   
 var instrumentOnCall = function(toBeInserted, context, adviceLocation, tree){
   
   var ast = tree;
@@ -137,7 +162,6 @@ var instrumentOnCall = function(toBeInserted, context, adviceLocation, tree){
       }
     
     for (var i = 0; i < tree.length; i++){
-      
       if(isNodeTypeOf(tree[i], "stat") || isNodeTypeOf(tree[i], "var")){
         call = getCall(tree[i]);
         if (call != false){
@@ -147,7 +171,9 @@ var instrumentOnCall = function(toBeInserted, context, adviceLocation, tree){
           var currentInsert = JSON.parse(JSON.stringify(toBeInserted));
           currentInsert[2].push(joinPoint);
           if (adviceLocation == "before"){
+            
           	tree.splice(i, 0, currentInsert);
+            i++;
           } else if(adviceLocation == "after"){
           	tree.splice(i+1, 0, currentInsert);
             i++;

@@ -135,7 +135,7 @@ module.exports = function(sourceTree){
     
   // export the helper functions for tests
   jaspect.privateFunctions = { 
-      
+      tacifyNested: tacifyNested
     	
   
   }
@@ -262,7 +262,7 @@ var tacifyNested = function(node){
         tempVarId++;
     }
 
-    newCode += deparse(node)
+    newCode += deparse(node);
     return parse(newCode);
 }
 

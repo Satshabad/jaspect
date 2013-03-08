@@ -100,11 +100,11 @@ module.exports = function(sourceTree){
     
     
     if (pointcut.type == "call"){
-    	var aspectedAst = instrumentOnCall(callBackInsert, parse("x = "+JSON.stringify(context))[1][0][1][3], adviceLocation, ast);
+    	var aspectedAst = instrumentOnCall(callBackInsert, parse("x = "+JSON.stringify(context))[1][0][1][3], adviceLocation, ast, pointcut.name);
     }
     
     if (pointcut.type == "execute"){
-    	var aspectedAst = instrumentOnExecute(callBackInsert, parse("x = "+JSON.stringify(context))[1][0][1][3], adviceLocation, ast);
+    	var aspectedAst = instrumentOnExecute(callBackInsert, parse("x = "+JSON.stringify(context))[1][0][1][3], adviceLocation, ast, pointcut.name);
     }
 
 
@@ -151,7 +151,7 @@ var tacify = function(ast){
 }
 
    
-var instrumentOnCall = function(toBeInserted, context, adviceLocation, tree){
+var instrumentOnCall = function(toBeInserted, context, adviceLocation, tree, onName){
   
   var ast = tree;
   
@@ -164,7 +164,7 @@ var instrumentOnCall = function(toBeInserted, context, adviceLocation, tree){
     for (var i = 0; i < tree.length; i++){
       if(isNodeTypeOf(tree[i], "stat") || isNodeTypeOf(tree[i], "var")){
         call = getCall(tree[i]);
-        if (call != false){
+        if (call != false && new RegExp(onName).exec(deparse(call))){
 
           joinPoint = ["object",[["args",["array",call[2]]],["that", getCallContext(call)], ["context", context]]];
 
@@ -197,7 +197,8 @@ var instrumentOnCall = function(toBeInserted, context, adviceLocation, tree){
 
 
 var getCallContext = function(node){
-  if (node[1] == "name"){
+  console.log(node);
+  if (node[1][0] == "name"){
     return ["name", "this"];
   }
 

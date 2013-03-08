@@ -21,18 +21,17 @@ module.exports = function(sourceTree){
     var ast = jaspect.sourceTree;
     ast = tacify(ast);
     
-    console.log("%j", ast);
-    ast[1].unshift(parse(cbDeclaration)[0][0]);
-    console.log("%j", ast);
-    console.log("============");
     
     if (pointcut.type == "call"){
-    	var aspectedAst = instrumentOnCall(callBackInsert, parse(JSON.stringify(context)), "after", ast);
+    	var aspectedAst = instrumentOnCall(callBackInsert, parse(JSON.stringify(context))[1][0], "after", ast);
     }
     
     if (pointcut.type == "execute"){
-    	var aspectedAst = instrumentOnExecute(callBackInsert, parse(JSON.stringify(context)), "after", ast);
+    	var aspectedAst = instrumentOnExecute(callBackInsert, parse(JSON.stringify(context))[1][0], "after", ast);
     }
+
+
+    ast[1].unshift(parse(cbDeclaration)[1][0]);
     
     jaspect.sourceTree = aspectedAst;
     
@@ -143,12 +142,14 @@ var instrumentOnCall = function(toBeInserted, context, adviceLocation, tree){
         call = getCall(tree[i]);
         if (call != false){
 
-          joinPoint = ["object",[["args",["array",call[2]],["that", getCall(call)], ["context", context]]]];
-          toBeInserted[2].push(joinPoint);
+          joinPoint = ["object",[["args",["array",call[2]]],["that", getCallContext(call)], ["context", context]]];
+
+          var currentInsert = JSON.parse(JSON.stringify(toBeInserted));
+          currentInsert[2].push(joinPoint);
           if (adviceLocation == "before"){
-          	tree.splice(i, 0, toBeInserted);
+          	tree.splice(i, 0, currentInsert);
           } else if(adviceLocation == "after"){
-          	tree.splice(i+1, 0, toBeInserted);
+          	tree.splice(i+1, 0, currentInsert);
             i++;
           }
           

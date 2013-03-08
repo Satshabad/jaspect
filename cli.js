@@ -25,7 +25,6 @@ fs.readFile(files[0], 'utf8', function (err, data) {
 
   jaspectcore = jaspectcore(parse(data));
   useraspects(jaspectcore);
-  console.log("%j", jaspectcore.sourceTree);
   console.log(deparse(jaspectcore.sourceTree));
 
 });

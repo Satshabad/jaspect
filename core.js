@@ -11,31 +11,28 @@ module.exports = function(sourceTrees){
   jaspect.sourceTrees = sourceTrees;
   
   
-  jaspect.after = function(pointcut, callback){
+  jaspect.after = function(pointcut, context, callback){
     
-    var callBackName = "f"+ funtionNumber.toString();
-    var cbDeclaration = "var" + callBackName + " = " + callback.toString();
+    var callBackName = parse("f"+ funtionNumber.toString()+"()")[1][0][1];
+    var cbDeclaration = "var" + deparse(callBackName) + " = " + callback.toString();
     funtionNumber++;
     
-    var rawAst = sourceTrees[pointcut.file];
+    var ast = sourceTrees[pointcut.file];
     
-    var functiondefAst = insertBefore(parse(cbDeclaration), rawAst);
+    ast = tacify(ast);
+    
+    ast[1].unshift(parse(cbDeclaration)[0]);
     
     if (point.type == "call"){
-    	var aspectedAst = afterCall(pointcut, callBackName, functiondefAst);
+    	var aspectedAst = instrumentOnCall(callBackName, deparse(context.toString()), "after", ast);
     }
     
     if (point.type == "execute"){
-    	var aspectedAst = afterExecute(pointcut, callBackName, functiondefAst);
+    	var aspectedAst = instrumentOnExecute(callBackName, deparse(context.toString()), "after", ast);
     }
     
     sourceTrees[pointcut.file] = aspectedAst;
     
-
-
-    
-
-
     /* insertions for this advice will be as follows:
 
 			 after call: 
@@ -57,11 +54,6 @@ module.exports = function(sourceTrees){
   }
   
   jaspect.before = function (pointcut, callback){
-    
-    
-    
-    insertBefore(parse)
-    
     
     
     
@@ -126,18 +118,6 @@ module.exports = function(sourceTrees){
   return jaspect;
 }
   
-var afterCall = function(pointcut, callbackName, ast){
-
-  var tacAst = tacify(functiondefAst, "call");
-  
-  var insertNode = parse(callbackName+"()");
-      
-  return insertAfter(insertNode, "call", ast);
-      
-      
-      
-      
-}
   
 // Helper functions 
   
@@ -145,15 +125,12 @@ var tacify = function(ast){
 
 }
     
-var insertBefore = function(toBeInserted, targetNode, ast){
-	
-}
     
-var insertAfterCall = function(toBeInserted, targetNode, tree){
+var instrumentOnCall = function(toBeInserted, context, adviceLocation, tree){
   
   var ast = tree;
   
-  var inner = function(toBeInserted, targetNode, tree){
+  var inner = function(toBeInserted tree){
 
     if (typeof tree === 'string'){
         return;
@@ -161,18 +138,27 @@ var insertAfterCall = function(toBeInserted, targetNode, tree){
     
     for (var i = 0; i < tree.length; i++){
       
-      if(isStat(tree[i]) || isVar(tree[i])){
+      if(isNodeType(tree[i], "stat") || isNodeType(tree[i], "var")){
      
         call = getCall(tree[i]);
         if (call != false){
-          tree.splice(i+1, 0, toBeInserted);
-          i++;
+
+          joinPoint = ["object",[["args",["array",call[2]],["that", getCall(call)], ["context", context]]]];
+          toBeInserted[2].push(joinPoint);
+          if (adviceLocation == "before"){
+          	tree.splice(i, 0, toBeInserted);
+          } else if(adviceLocation == "after"){
+          	tree.splice(i+1, 0, toBeInserted);
+            i++;
+          }
+          
+
         } else {
-          insertAfter(toBeInserted, targetNode, tree[i]);
+          insertAfter(toBeInserted, tree[i]);
         }
       
       }else{
-      	insertAfter(toBeInserted, targetNode, tree[i]);
+      	insertAfter(toBeInserted, tree[i]);
       }
     }    
   }
@@ -181,7 +167,18 @@ var insertAfterCall = function(toBeInserted, targetNode, tree){
   return ast;
   
 }
-    
+
+
+var getCallContext = function(node){
+  if (node[1] == "name"){
+    return ["name", "this"];
+  }
+
+  return node[1];
+
+
+
+}
     
 var getCall = function(tree){
    
@@ -209,7 +206,7 @@ var getCall = function(tree){
  
 }
 
-var isStat = function(ast){
+var isNodeTypeOf = function(ast, type){
   if (typeof ast === 'string'){
         return false;
       }
@@ -218,21 +215,8 @@ var isStat = function(ast){
       return false;
   }
 
-  return ast[0] == "stat";
+  return ast[0] == type;
 }
-
-var isVar = function(ast){
-  if (typeof ast === 'string'){
-        return false;
-      }
-  
-  if (ast.length == 0){
-      return false;
-  }
-
-  return ast[0] == "var";
-}
-     
 
 // foo(bar())
 // t1 = bar()
@@ -321,25 +305,3 @@ var replaceDeepestCall = function(tree, newVar){
   replaceCall(tree, 0);
   return call;
 }
-
-    
-  
-  
-var traverse = function(tree){
-  
-    if (typeof tree === 'string'){
-      return;
-    }
-    
-    for (var i = 0; i < tree.length; i++){
-      
-      if (tree[i] === 'defun'){
-        tree[3].unshift(["stat", ["call", ["name", "bar"], []]]);
-      }
-      traverse(tree[i]);
-    }
-  
-  }
-
-  
-

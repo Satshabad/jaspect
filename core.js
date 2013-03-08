@@ -4,34 +4,37 @@ var burrito = require('burrito');
 var parse = burrito.parse;
 var deparse = burrito.deparse;
 
-module.exports = function(sourceTrees){
-	var jaspect = {};
+module.exports = function(sourceTree){
+  var jaspect = {};
   var functionNumber = 0;
   
-  jaspect.sourceTrees = sourceTrees;
+  jaspect.sourceTree = sourceTree;
   
   
   jaspect.after = function(pointcut, context, callback){
     
-    var callBackName = parse("f"+ funtionNumber.toString()+"()")[1][0][1];
-    var cbDeclaration = "var" + deparse(callBackName) + " = " + callback.toString();
-    funtionNumber++;
+    var callBackName = "f"+ functionNumber.toString();
+    var cbDeclaration = "var " + callBackName + " = " + callback.toString();
+    functionNumber++;
+    var callBackInsert = parse(callBackName+"()")[1][0][1];
     
-    var ast = sourceTrees[pointcut.file];
-    
+    var ast = jaspect.sourceTree;
     ast = tacify(ast);
     
-    ast[1].unshift(parse(cbDeclaration)[0]);
+    console.log("%j", ast);
+    ast[1].unshift(parse(cbDeclaration)[0][0]);
+    console.log("%j", ast);
+    console.log("============");
     
-    if (point.type == "call"){
-    	var aspectedAst = instrumentOnCall(callBackName, deparse(context.toString()), "after", ast);
+    if (pointcut.type == "call"){
+    	var aspectedAst = instrumentOnCall(callBackInsert, parse(JSON.stringify(context)), "after", ast);
     }
     
-    if (point.type == "execute"){
-    	var aspectedAst = instrumentOnExecute(callBackName, deparse(context.toString()), "after", ast);
+    if (pointcut.type == "execute"){
+    	var aspectedAst = instrumentOnExecute(callBackInsert, parse(JSON.stringify(context)), "after", ast);
     }
     
-    sourceTrees[pointcut.file] = aspectedAst;
+    jaspect.sourceTree = aspectedAst;
     
     /* insertions for this advice will be as follows:
 
@@ -109,8 +112,6 @@ module.exports = function(sourceTrees){
   // export the helper functions for tests
   jaspect.privateFunctions = { 
       
-      traverse: traverse,
-      tacify : tacify
     	
   
   }
@@ -122,7 +123,7 @@ module.exports = function(sourceTrees){
 // Helper functions 
   
 var tacify = function(ast){
-
+    return ast;
 }
     
     
@@ -130,16 +131,15 @@ var instrumentOnCall = function(toBeInserted, context, adviceLocation, tree){
   
   var ast = tree;
   
-  var inner = function(toBeInserted tree){
+  var inner = function(toBeInserted, tree){
 
-    if (typeof tree === 'string'){
+    if (typeof tree === 'string' || tree == null){
         return;
       }
     
     for (var i = 0; i < tree.length; i++){
       
-      if(isNodeType(tree[i], "stat") || isNodeType(tree[i], "var")){
-     
+      if(isNodeTypeOf(tree[i], "stat") || isNodeTypeOf(tree[i], "var")){
         call = getCall(tree[i]);
         if (call != false){
 
@@ -154,16 +154,16 @@ var instrumentOnCall = function(toBeInserted, context, adviceLocation, tree){
           
 
         } else {
-          insertAfter(toBeInserted, tree[i]);
+          inner(toBeInserted, tree[i]);
         }
       
       }else{
-      	insertAfter(toBeInserted, tree[i]);
+      	inner(toBeInserted, tree[i]);
       }
     }    
   }
     
-  inner(toBeInserted, targetNode, tree);
+  inner(toBeInserted, tree);
   return ast;
   
 }
@@ -186,7 +186,7 @@ var getCall = function(tree){
    
    var inner = function(tree){
 
-     if (typeof tree === 'string'){
+     if (typeof tree === 'string' || tree == null){
           return;
         }
      
@@ -207,7 +207,7 @@ var getCall = function(tree){
 }
 
 var isNodeTypeOf = function(ast, type){
-  if (typeof ast === 'string'){
+  if (typeof ast === 'string' || ast == null){
         return false;
       }
   
@@ -230,7 +230,6 @@ var tacifyNested = function(node){
     while(numberOfCalls(node) > 1){
 
         newVar = parse("__t"+tempVarId.toString())[1][0][1];
-        console.log(newVar);
         call = replaceDeepestCall(node, newVar);
         newCode += "var "+ deparse(newVar) + " = " + deparse(call) + ";";
         tempVarId++;

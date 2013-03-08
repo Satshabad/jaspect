@@ -1,34 +1,18 @@
 // This file shows what the jaspect api could look like.
 
-var jaspect = require('jaspect'); // If this being used server side, then this works. Otherwise it should be made avaible with a script tag?
 
-var anyFunctionPointCut = {"file":"myfile.js",
-                         
-                         "pointcutType":"execute(*)",
-                         
-                         "args":"*"};
-    
+var myaspects = module.exports = function(jaspect){
 
-var fooPointCut = {"file":"myfile.js",
-                         
-                         "pointcutType":"call(foo)",
-                         
-                         "args":"*"};
+  var context = {};
+  var fooPointCut = {type:"call"};
+  
+  jaspect.after(fooPointCut, context, function(jp){
+        
+        console.log(jp.args);
+        
+  });
+  
+  
 
-jaspect.before(fooPointCut, function(jointPoint){
-      
-      console.log(jointPoint.params());
-      
-});
-
-
-jaspect.around(fooPointCut, function(jointPoint){
-      
-      console.log(jointPoint.params());
-      var result = joinPoint.proceed();
-      
-  		return result
-      
-});
-
-module.export = jaspect;
+  
+}

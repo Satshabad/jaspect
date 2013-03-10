@@ -1,11 +1,45 @@
-### Welcome to GitHub Pages.
-This automatic page generator is the easiest way to create beautiful pages for all of your projects. Author your page content here using GitHub Flavored Markdown, select a template crafted by a designer, and publish. After your page is generated, you can check out the new branch:
+### Getting Started with Aspects for JavaScript
+Aspects are a way to add additional functionality to your JavaScript without modifying the original code.
+
+Let's look at the canonical logging example. Here's some code that you might write:
 
 ```
-$ cd your_repo_root/repo_name
-$ git fetch origin
-$ git checkout gh-pages
+// in myStuff.js
+
+var myMult = function(x, y, z){
+    return x * y * z;
+}
+
+myMult(myMult(2,3,4),2,3);
 ```
+Now to add a log statement to every call to myMult:
+
+```
+// in loggingAspect.js
+
+module.exports = function(jaspect){
+
+  var context = {};
+  var multPointCut = {type:"call", name:"myMult"};
+  
+  jaspect.before(multPointCut, context, function(joinPoint){
+        
+        console.log("DEBUG " + joinPoint.name + joinPoint.args);
+        
+  });
+  
+  
+}
+```
+
+Now we need to apply the aspect to the code. This will output a new file with the logging statements:
+
+```
+jaspect -j loggingAspect.js myStuff.js
+```
+
+
+
 
 If you're using the GitHub for Mac, simply sync your repository and you'll see the new branch.
 

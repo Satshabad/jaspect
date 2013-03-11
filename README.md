@@ -1,7 +1,10 @@
-### Getting Started with Aspects for JavaScript
-Aspects are a way to add additional functionality to your JavaScript without modifying the original code.
+# Getting Started with Aspects for JavaScript
+An aspect of a program is a feature linked to many other parts of the program, but which is not related to the program's primary function.
+Jaspect let's you write these aspects separately and then add them in at the last minute.
 
-Let's look at the canonical logging example. Here's some code that you might write:
+## The canonical logging example
+
+This some code that you might write:
 
 ```
 // in myStuff.js
@@ -12,7 +15,8 @@ var myMult = function(x, y, z){
 
 myMult(myMult(2,3,4),2,3);
 ```
-Now to add a log statement to every call to myMult:
+
+To log before every call to myMult:
 
 ```
 // in loggingAspect.js
@@ -27,30 +31,54 @@ module.exports = function(jaspect){
         console.log("DEBUG " + joinPoint.name + joinPoint.args);
         
   });
-  
-  
 }
 ```
 
-Now we need to apply the aspect to the code. This will output a new file with the logging statements:
+Finally to apply the aspect to your code:
 
 ```
 jaspect -j loggingAspect.js myStuff.js
 ```
 
+When the resulting file is run we get the following output:
+
+```
+DEBUG myMult 2,3,4
+DEBUG myMult myMult(2,3,4), 2, 3
+
+```
 
 
+## Installation
 
-If you're using the GitHub for Mac, simply sync your repository and you'll see the new branch.
+```
+npm install -g jaspect
+```
 
-### Designer Templates
-We've crafted some handsome templates for you to use. Go ahead and continue to layouts to browse through them. You can easily go back to edit your page before publishing. After publishing your page, you can revisit the page generator and switch to another theme. Your Page content will be preserved if it remained markdown format.
+## Definitions
 
-### Rather Drive Stick?
-If you prefer to not use the automatic generator, push a branch named `gh-pages` to your repository to create a page manually. In addition to supporting regular HTML content, GitHub Pages support Jekyll, a simple, blog aware static site generator written by our own Tom Preston-Werner. Jekyll makes it easy to create site-wide headers and footers without having to copy them across every page. It also offers intelligent blog support and other advanced templating features.
+#### Aspect
+An aspect of a program is a feature linked to many other parts of the program, but which is not related to the program's primary function.
 
-### Authors and Contributors
-You can @mention a GitHub username to generate a link to their profile. The resulting `<a>` element will link to the contributor's GitHub Profile. For example: In 2007, Chris Wanstrath (@defunkt), PJ Hyett (@pjhyett), and Tom Preston-Werner (@mojombo) founded GitHub.
+#### Join Point
+A specific point in the control flow of your program.
 
-### Support or Contact
-Having trouble with Pages? Check out the documentation at http://help.github.com/pages or contact support@github.com and we’ll help you sort it out.
+#### Cut Point
+A set of join points.
+
+#### Advice
+A piece of code to be executed on all join points in a cut point.
+
+# Documentation
+
+## Point Cuts
+
+## Advice
+
+## Usage
+
+## Limitations
+
+# Contributing
+
+

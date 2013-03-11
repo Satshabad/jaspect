@@ -35,7 +35,9 @@
 <p>An aspect of a program is a feature linked to many other parts of the program, but which is not related to the program's primary function.
 Jaspect let's you write these aspects separately and then add them in at the last minute.</p>
 
-<p>Let's look at the canonical logging example. Here's some code that you might write:</p>
+<h2>The canonical logging example</h2>
+
+<p>This some code that you might write:</p>
 
 <pre><code>// in myStuff.js
 
@@ -46,7 +48,7 @@ var myMult = function(x, y, z){
 myMult(myMult(2,3,4),2,3);
 </code></pre>
 
-<p>Now to add a log statement to every call to myMult:</p>
+<p>To log before every call to myMult:</p>
 
 <pre><code>// in loggingAspect.js
 
@@ -63,7 +65,7 @@ module.exports = function(jaspect){
 }
 </code></pre>
 
-<p>Now we need to apply the aspect to the code. This will output a new file with the logging statements:</p>
+<p>Finally to apply the aspect to your code:</p>
 
 <pre><code>jaspect -j loggingAspect.js myStuff.js
 </code></pre>
@@ -78,6 +80,10 @@ DEBUG myMult myMult(2,3,4), 2, 3
 <p>TaDa!</p>
 
 <h3>Defintions</h3>
+
+<h1>Aspect</h1>
+
+<p>An aspect of a program is a feature linked to many other parts of the program, but which is not related to the program's primary function.</p>
 
 <h1>Join Point</h1>
 

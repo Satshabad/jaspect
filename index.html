@@ -17,7 +17,7 @@
     <div class="wrapper">
       <header>
         <h1 class="header">Jaspect</h1>
-        <p class="header">Simple aspect programming for JavaScript</p>
+        <p class="header">Simple Aspects for JavaScript</p>
 
         <ul>
           <li class="download"><a class="buttons" href="https://github.com/Satshabad/jaspect/zipball/master">Download ZIP</a></li>
@@ -32,7 +32,8 @@
       <section>
         <h3>Getting Started with Aspects for JavaScript</h3>
 
-<p>Aspects are a way to add additional functionality to your JavaScript without modifying the original code.</p>
+<p>An aspect of a program is a feature linked to many other parts of the program, but which is not related to the program's primary function.
+Jaspect let's you write these aspects separately and then add them in at the last minute.</p>
 
 <p>Let's look at the canonical logging example. Here's some code that you might write:</p>
 
@@ -66,6 +67,31 @@ module.exports = function(jaspect){
 
 <pre><code>jaspect -j loggingAspect.js myStuff.js
 </code></pre>
+
+<p>When the resulting file is run we get the following output:</p>
+
+<pre><code>DEBUG myMult 2,3,4
+DEBUG myMult myMult(2,3,4), 2, 3
+
+</code></pre>
+
+<p>TaDa!</p>
+
+<h3>Defintions</h3>
+
+<h1>Join Point</h1>
+
+<p>A specific point in the control flow of your program.</p>
+
+<h1>Cut Point</h1>
+
+<p>A set of join points.</p>
+
+<h1>Advice</h1>
+
+<p>A piece of code to be executed on all join points in a cut point.</p>
+
+<h3>Documentation</h3>
       </section>
       <footer>
         <p><small>Hosted on <a href="https://pages.github.com">GitHub Pages</a> using the Dinky theme</small></p>

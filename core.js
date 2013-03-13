@@ -8,7 +8,7 @@ module.exports = function(sourceTree){
   var jaspect = {};
   var functionNumber = 0;
   
-  jaspect.sourceTree = sourceTree;
+  jaspect.sourceTree = tacify(sourceTree);
   
   
   jaspect.after = function(pointcut, context, callback){
@@ -96,19 +96,23 @@ module.exports = function(sourceTree){
     var callBackInsert = parse(callBackName+"()")[1][0][1];
     
     var ast = jaspect.sourceTree;
-    ast = tacify(ast);
     
     
     if (pointcut.type == "call"){
-    	var aspectedAst = instrumentOnCall(callBackInsert, parse("x = "+JSON.stringify(context))[1][0][1][3], adviceLocation, ast, pointcut.name);
+    	var aspectedAst = instrumentOnCall(callBackInsert, adviceLocation, ast, pointcut.name);
     }
     
     if (pointcut.type == "execute"){
-    	var aspectedAst = instrumentOnExecute(callBackInsert, parse("x = "+JSON.stringify(context))[1][0][1][3], adviceLocation, ast, pointcut.name);
+    	var aspectedAst = instrumentOnExecute(callBackInsert, adviceLocation, ast, pointcut.name);
     }
+
+    context = parse("var __context__ = "+JSON.stringify(context))[1][0];
 
 
     ast[1].unshift(parse(cbDeclaration)[1][0]);
+    // Need to only insert this once. Multiple calls to before and after will insert more than 1
+    console.log("%j", context);
+    ast[1].unshift(context);
     
     jaspect.sourceTree = aspectedAst;
     
@@ -146,12 +150,9 @@ module.exports = function(sourceTree){
   
 // Helper functions 
   
-var tacify = function(ast){
-    return ast;
-}
 
    
-var instrumentOnCall = function(toBeInserted, context, adviceLocation, tree, onName){
+var instrumentOnCall = function(toBeInserted, adviceLocation, tree, onName){
   
   var ast = tree;
   
@@ -166,8 +167,7 @@ var instrumentOnCall = function(toBeInserted, context, adviceLocation, tree, onN
         call = getCall(tree[i]);
         if (call != false && new RegExp(onName).exec(deparse(call))){
 
-          joinPoint = ["object",[["args",["array",call[2]]],["that", getCallContext(call)], ["context", context]]];
-
+          joinPoint = ["object",[["args",["array",call[2]]],["that", getCallContext(call)], ["context", ["name", "__context__"]]]];
           var currentInsert = JSON.parse(JSON.stringify(toBeInserted));
           currentInsert[2].push(joinPoint);
           if (adviceLocation == "before"){
@@ -197,7 +197,6 @@ var instrumentOnCall = function(toBeInserted, context, adviceLocation, tree, onN
 
 
 var getCallContext = function(node){
-  console.log(node);
   if (node[1][0] == "name"){
     return ["name", "this"];
   }
@@ -246,11 +245,42 @@ var isNodeTypeOf = function(ast, type){
   return ast[0] == type;
 }
 
+
+var tacify = function(node){
+ 
+  var inner = function(tree){
+    console.log("%j", tree);
+    if (typeof tree === 'string' || tree == null){
+      return;
+    } 
+
+    for (var i = 0; i < tree.length; i ++){
+      if (isNodeTypeOf(tree[i], 'var') || isNodeTypeOf(tree[i], 'stat')) {
+        var newNodes = tacifyNested(tree[i]);
+        tree.splice(i, 1); //remove old node
+        for (var j = 0; j < newNodes.length; j++){
+          tree.splice(i, 0, newNodes[j]);
+          i++;
+        }
+      }
+      inner(tree[i]);
+    }
+
+
+  }
+  inner(node);
+  return node;
+
+}
+
 // foo(bar())
 // t1 = bar()
 // foo(t1)
 
 var tacifyNested = function(node){
+    if (node.length == 0){
+      return node;
+    }
 
     newCode = "";
     tempVarId = 0;
@@ -264,7 +294,7 @@ var tacifyNested = function(node){
     }
 
     newCode += deparse(node);
-    return parse(newCode);
+    return parse(newCode)[1];
 }
 
 
@@ -273,7 +303,11 @@ var numberOfCalls = function(tree){
   callCount = 0;
 
   var inner = function(tree){
-
+  
+    if (tree === null){
+      return;
+    }
+  
     if (typeof tree === 'string'){
       if (tree == "call"){
           callCount = callCount+1;
@@ -299,6 +333,11 @@ var replaceDeepestCall = function(tree, newVar){
 
 
   var findDepth = function(tree, depth){
+
+    if (tree === null){
+      return;
+    }
+  
     if (typeof tree === 'string'){
       if (tree == "call"){
           if (depth > deepestCall){
@@ -314,6 +353,11 @@ var replaceDeepestCall = function(tree, newVar){
   }
 
   var replaceCall = function(tree, depth){
+
+    if (tree === null){
+      return;
+    }
+  
     if (typeof tree === 'string'){
       return;
     }

@@ -3,10 +3,10 @@
 
 var myaspects = module.exports = function(jaspect){
 
-  var context = {calls: "0"};
-  var fooPointCut = {type:"call", name:".*"};
+  var context = {calls: 0};
+  var anyPointCut = {type:"call", name:".*"};
   
-  jaspect.before(fooPointCut, context, function(jp){
+  jaspect.before(anyPointCut, context, function(jp){
         
         console.log(jp.args);
         context.calls++;

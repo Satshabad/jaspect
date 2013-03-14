@@ -111,7 +111,6 @@ module.exports = function(sourceTree){
 
     ast[1].unshift(parse(cbDeclaration)[1][0]);
     // Need to only insert this once. Multiple calls to before and after will insert more than 1
-    console.log("%j", context);
     ast[1].unshift(context);
     
     jaspect.sourceTree = aspectedAst;
@@ -249,7 +248,6 @@ var isNodeTypeOf = function(ast, type){
 var tacify = function(node){
  
   var inner = function(tree){
-    console.log("%j", tree);
     if (typeof tree === 'string' || tree == null){
       return;
     } 

@@ -1,15 +1,14 @@
-// This file will conatain all the core logic of jaspect. For now it's a staging designed to work with index.html
 
-var burrito = require('burrito');
-var parse = burrito.parse;
-var deparse = burrito.deparse;
-var tacify = require('./tacify');
+var parser = require('./parser');
+var parse = parser.parse;
+var deparse = parser.deparse;
+var parseSingleStat = parser.parseSingleStat;
+var tacify = require('tacify.js');
 
 module.exports = function(sourceTree){
   var jaspect = {};
   var functionNumber = 0;
-  
-  jaspect.sourceTree = tacify(sourceTree);
+  jaspect.sourceTree = tacify.tacify(sourceTree);
   
   
   jaspect.after = function(pointcut, context, callback){
@@ -91,28 +90,26 @@ module.exports = function(sourceTree){
 
   var instrument =  function(pointcut, context, callback, adviceLocation){
     
-    var callBackName = "f"+ functionNumber.toString();
+    var callBackName = "__f"+ functionNumber.toString();
+    var contextName = "__context"+ functionNumber.toString();
     var cbDeclaration = "var " + callBackName + " = " + callback.toString();
     functionNumber++;
-    var callBackInsert = parse(callBackName+"()")[1][0][1];
-    
+    var callBackInsert = parseSingleStat(callBackName+"()")[1];
+
     var ast = jaspect.sourceTree;
     
-    
     if (pointcut.type == "call"){
-    	var aspectedAst = instrumentOnCall(callBackInsert, adviceLocation, ast, pointcut.name);
+    	var aspectedAst = instrumentOnCall(callBackInsert, adviceLocation, ast, pointcut.name, contextName);
     }
     
     if (pointcut.type == "execute"){
     	var aspectedAst = instrumentOnExecute(callBackInsert, adviceLocation, ast, pointcut.name);
     }
 
-    context = parse("var __context__ = "+JSON.stringify(context))[1][0];
-
-
-    ast[1].unshift(parse(cbDeclaration)[1][0]);
+    var contextDeclaration = parseSingleStat("var "+contextName +" = "+JSON.stringify(context));
+    ast.unshift(parseSingleStat(cbDeclaration));
     // Need to only insert this once. Multiple calls to before and after will insert more than 1
-    ast[1].unshift(context);
+    ast.unshift(contextDeclaration);
     
     jaspect.sourceTree = aspectedAst;
     
@@ -149,22 +146,26 @@ module.exports = function(sourceTree){
   
 
    
-var instrumentOnCall = function(toBeInserted, adviceLocation, tree, onName){
+var instrumentOnCall = function(toBeInserted, adviceLocation, tree, onName, contextName){
   
   var ast = tree;
   
   var inner = function(toBeInserted, tree){
 
-    if (typeof tree === 'string' || tree == null){
+    if (typeof tree === 'string' || tree == null || tree === undefined){
         return;
       }
     
     for (var i = 0; i < tree.length; i++){
       if(isNodeTypeOf(tree[i], "stat") || isNodeTypeOf(tree[i], "var")){
-        call = getCall(tree[i]);
-        if (call != false && new RegExp(onName).exec(deparse(call))){
 
-          joinPoint = ["object",[["args",["array",call[2]]],["that", getCallContext(call)], ["context", ["name", "__context__"]]]];
+        var call = getCall(tree[i]);
+        if (call != false && new RegExp(onName).exec(getNameOfCall(call))){
+          var joinPoint = ["object",[["args",["array",call[2]]],
+                                     ["that", getCallContext(call)],
+                                     ["name", ['string', getNameOfCall(call)]],
+                                     ["context", ["name",contextName]]]];
+
           var currentInsert = JSON.parse(JSON.stringify(toBeInserted));
           currentInsert[2].push(joinPoint);
           if (adviceLocation == "before"){
@@ -192,6 +193,9 @@ var instrumentOnCall = function(toBeInserted, adviceLocation, tree, onName){
   
 }
 
+var getNameOfCall = function(call){
+  return call[1][1]
+}
 
 var getCallContext = function(node){
   if (node[1][0] == "name"){

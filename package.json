@@ -4,8 +4,9 @@
   "description": "Simple aspect oriented JavaScript",
   "main": "cli.js",
   "dependencies": {
-    "burrito": "~0.2.12",
-    "tacify.js": "~0.1.0"
+    "tacify.js": "~0.2.0",
+    "js-beautify": "~1.3.2",
+    "optimist": "~0.4.0"
   },
   "devDependencies": {},
   "scripts": {
